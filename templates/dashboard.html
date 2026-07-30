@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SQL Injection Demo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <div class="logo">SQL Injection Demo</div>
+            <div class="nav-links">
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message {{ category }}">
+                    {{ message }}
+                    <span class="close-btn">&times;</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="container">
+        <div class="dashboard-card">
+            <div class="welcome-section">
+                <h1>Welcome, <span class="username-highlight">{{ username }}</span>!</h1>
+                {% if login_type == 'insecure' %}
+                <div class="alert alert-warning">
+                    &#9888; You logged in through the <strong>INSECURE</strong> method.
+                    Your login was vulnerable to SQL Injection.
+                </div>
+                {% else %}
+                <div class="alert alert-success">
+                    &#10004; You logged in through the <strong>SECURE</strong> method.
+                    Your login was protected against SQL Injection.
+                </div>
+                {% endif %}
+            </div>
+
+            {% if login_type == 'insecure' %}
+            <div class="dashboard-section exploit-info">
+                <h2>How Was the Insecure Login Exploited?</h2>
+                <p>If you used an SQL injection payload, here's what happened:</p>
+                <ol class="exploit-steps">
+                    <li>The form sent your username and password to the server</li>
+                    <li>The server built a SQL query by directly concatenating your input</li>
+                    <li>Your <strong>malicious input</strong> became part of the SQL command</li>
+                    <li>SQL interpreted your payload <code>' OR '1'='1</code> as code, not data</li>
+                    <li>The query returned all users from the database</li>
+                    <li>The system logged you in as the first user found</li>
+                </ol>
+            </div>
+
+            <div class="dashboard-section prevention-info">
+                <h2>How to Prevent This?</h2>
+                <div class="prevention-cards">
+                    <div class="prevention-card">
+                        <h3>Use Parameterized Queries</h3>
+                        <p>Never concatenate user input into SQL strings. Use <code>?</code> placeholders.</p>
+                    </div>
+                    <div class="prevention-card">
+                        <h3>Input Validation</h3>
+                        <p>Validate and sanitize all user inputs before processing.</p>
+                    </div>
+                    <div class="prevention-card">
+                        <h3>Least Privilege</h3>
+                        <p>Use database accounts with minimal required permissions.</p>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="dashboard-section secure-info">
+                <h2>Why Your Login Was Safe</h2>
+                <div class="safety-points">
+                    <div class="safety-point">
+                        <span class="safety-icon">&#10004;</span>
+                        <div>
+                            <h3>Parameterized Query Used</h3>
+                            <p>The SQL query was pre-compiled with <code>?</code> placeholders.
+                               Your input was treated as data, not executable code.</p>
+                        </div>
+                    </div>
+                    <div class="safety-point">
+                        <span class="safety-icon">&#10004;</span>
+                        <div>
+                            <h3>Input Automatically Escaped</h3>
+                            <p>Special characters in your input were automatically escaped
+                               by the database driver, preventing injection.</p>
+                        </div>
+                    </div>
+                    <div class="safety-point">
+                        <span class="safety-icon">&#10004;</span>
+                        <div>
+                            <h3>Query Structure Fixed</h3>
+                            <p>The query structure is determined before user input is bound,
+                               so attackers cannot alter the SQL command.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="dashboard-section project-summary">
+                <h2>Project Overview</h2>
+                <table class="summary-table">
+                    <tr>
+                        <td>Project Title</td>
+                        <td>SQL Injection Attack Detection and Prevention Using Secure Login System</td>
+                    </tr>
+                    <tr>
+                        <td>Developer</td>
+                        <td>Mohd Yasin Kazi</td>
+                    </tr>
+                    <tr>
+                        <td>Class</td>
+                        <td>TYBSc Computer Science</td>
+                    </tr>
+                    <tr>
+                        <td>College</td>
+                        <td>SIWS College</td>
+                    </tr>
+                    <tr>
+                        <td>Purpose</td>
+                        <td>Educational Demonstration</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="dashboard-actions">
+                {% if login_type == 'insecure' %}
+                <a href="{{ url_for('secure_login') }}" class="btn btn-primary">Try Secure Login</a>
+                {% else %}
+                <a href="{{ url_for('insecure_login') }}" class="btn btn-danger">Try Insecure Login</a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}" class="btn btn-secondary">Logout</a>
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">Home</a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Developed by Mohd Yasin Kazi | TYBSc CS | SIWS College</p>
+        <p class="disclaimer">For Educational Purpose Only</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

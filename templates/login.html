@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insecure Login - SQL Injection Demo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="warning-banner danger">
+        &#9888; FOR EDUCATIONAL PURPOSE ONLY - THIS LOGIN IS VULNERABLE TO SQL INJECTION
+    </div>
+
+    <nav>
+        <div class="nav-container">
+            <div class="logo">SQL Injection Demo</div>
+            <div class="nav-links">
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('insecure_login') }}" class="active">Insecure Login</a>
+                <a href="{{ url_for('secure_login') }}">Secure Login</a>
+            </div>
+        </div>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message {{ category }}">
+                    {{ message }}
+                    <span class="close-btn">&times;</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="container">
+        <div class="login-card insecure">
+            <div class="card-header">
+                <h1>Insecure Login</h1>
+                <p class="subtitle">This login is VULNERABLE to SQL Injection</p>
+            </div>
+
+            <div class="vulnerability-badge">
+                <span class="badge-icon">&#128274;</span>
+                <span class="badge-text">VULNERABLE - String Concatenation Used</span>
+            </div>
+
+            <form method="POST" action="{{ url_for('insecure_login') }}" class="login-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username"
+                           placeholder="Enter username or SQL injection payload" required
+                           autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="text" id="password" name="password"
+                           placeholder="Enter password or SQL injection payload" required
+                           autocomplete="off">
+                </div>
+                <button type="submit" class="btn btn-danger">Login (Insecure)</button>
+            </form>
+
+            {% if query_tried %}
+            <div class="query-display">
+                <h3>SQL Query Executed:</h3>
+                <div class="code-block">
+                    <code>{{ query_tried }}</code>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="payload-helper">
+                <h3>Try These SQL Injection Payloads!</h3>
+                <p>Click any payload to copy, then paste into the username field:</p>
+                <div class="payload-list">
+                    <div class="payload-item" onclick="copyPayload(this)">
+                        <code>admin' --</code>
+                        <span class="payload-desc">Comments out the rest of the query</span>
+                    </div>
+                    <div class="payload-item" onclick="copyPayload(this)">
+                        <code>' OR '1'='1</code>
+                        <span class="payload-desc">Creates an always-true condition</span>
+                    </div>
+                    <div class="payload-item" onclick="copyPayload(this)">
+                        <code>admin' /*</code>
+                        <span class="payload-desc">Multi-line comment bypass</span>
+                    </div>
+                    <div class="payload-item" onclick="copyPayload(this)">
+                        <code>admin' OR '1'='1' --</code>
+                        <span class="payload-desc">Combined bypass with comment</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="secure-link">
+                <a href="{{ url_for('secure_login') }}">Try Secure Login Instead &#8594;</a>
+            </div>
+        </div>
+
+        <div class="code-explanation">
+            <h2>Why is this login vulnerable?</h2>
+            <p>The SQL query is built using <strong>string concatenation</strong>:</p>
+            <div class="code-block">
+                <pre><code>query = f"SELECT * FROM users \
+WHERE username='{username}' \
+AND password='{password}'"</code></pre>
+            </div>
+
+            <h3>Example Attack</h3>
+            <p>If you enter <code>admin' --</code> as username and anything as password, the query becomes:</p>
+            <div class="code-block">
+                <pre><code>SELECT * FROM users \
+WHERE username='admin' --' AND password='anything'</code></pre>
+            </div>
+            <p>The <code>--</code> is SQL's comment syntax. Everything after it is ignored,
+               so the password check is completely bypassed!</p>
+
+            <h3>Another Example</h3>
+            <p>Using <code>' OR '1'='1</code> makes the WHERE clause always true:</p>
+            <div class="code-block">
+                <pre><code>SELECT * FROM users \
+WHERE username='' OR '1'='1' AND password='' OR '1'='1'</code></pre>
+            </div>
+            <p>This returns ALL users from the database, and the first user (usually admin) is used for login.</p>
+
+            <div class="danger-box">
+                <h4>&#9888; Security Risk</h4>
+                <p>String concatenation in SQL queries allows attackers to modify the query structure
+                   by injecting SQL keywords and syntax. <strong>Never use this in production!</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Developed by Mohd Yasin Kazi | TYBSc CS | SIWS College</p>
+        <p class="disclaimer">For Educational Purpose Only</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

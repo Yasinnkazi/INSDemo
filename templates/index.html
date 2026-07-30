@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Injection Demo - Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="warning-banner">
+        &#9888; FOR EDUCATIONAL PURPOSE ONLY - DO NOT USE THIS IN REAL APPLICATIONS
+    </div>
+
+    <nav>
+        <div class="nav-container">
+            <div class="logo">SQL Injection Demo</div>
+            <div class="nav-links">
+                <a href="{{ url_for('index') }}" class="active">Home</a>
+                <a href="{{ url_for('insecure_login') }}">Insecure Login</a>
+                <a href="{{ url_for('secure_login') }}">Secure Login</a>
+            </div>
+        </div>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message {{ category }}">
+                    {{ message }}
+                    <span class="close-btn">&times;</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="container">
+        <div class="hero-section">
+            <div class="hero-content">
+                <h1>SQL Injection Attack Detection & Prevention</h1>
+                <p class="hero-subtitle">Using Secure Login System</p>
+                <p class="hero-desc">
+                    An educational demonstration of SQL Injection vulnerabilities
+                    and how to prevent them using parameterized queries.
+                </p>
+            </div>
+        </div>
+
+        <div class="cards-grid">
+            <div class="info-card insecure-card" onclick="location.href='{{ url_for('insecure_login') }}'">
+                <div class="card-icon">&#128274;</div>
+                <h2>Insecure Login</h2>
+                <p>Try SQL Injection attacks on a deliberately vulnerable login system using string concatenation.</p>
+                <div class="card-tag vulnerable">VULNERABLE</div>
+            </div>
+
+            <div class="info-card secure-card" onclick="location.href='{{ url_for('secure_login') }}'">
+                <div class="card-icon">&#128737;</div>
+                <h2>Secure Login</h2>
+                <p>Experience a secure login protected by parameterized queries that prevent SQL Injection.</p>
+                <div class="card-tag safe">SECURE</div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h2>What is SQL Injection?</h2>
+            <p>
+                SQL Injection is a code injection technique that exploits security vulnerabilities
+                in an application's software by inserting malicious SQL statements into input fields.
+                This project demonstrates both vulnerable and secure login systems to help students
+                understand the importance of secure coding practices.
+            </p>
+
+            <h2>Project Features</h2>
+            <ul class="feature-list">
+                <li>Two login systems - Insecure vs Secure</li>
+                <li>Live SQL Injection demonstration</li>
+                <li>Real-time query visualization</li>
+                <li>Prevention using Prepared Statements</li>
+                <li>Session management and logout</li>
+                <li>Responsive dark theme design</li>
+            </ul>
+
+            <h2>Demo Users</h2>
+            <div class="users-table-wrapper">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Password</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>admin</td><td>admin123</td></tr>
+                        <tr><td>user1</td><td>pass123</td></tr>
+                        <tr><td>user2</td><td>test456</td></tr>
+                        <tr><td>demo</td><td>demo123</td></tr>
+                        <tr><td>student</td><td>project2024</td></tr>
+                        <tr><td>test</td><td>test123</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Developed by Mohd Yasin Kazi | TYBSc CS | SIWS College</p>
+        <p class="disclaimer">For Educational Purpose Only</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

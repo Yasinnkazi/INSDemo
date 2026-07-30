@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Login - SQL Injection Demo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="warning-banner safe">
+        &#128737; SECURE LOGIN - Protected against SQL Injection using Parameterized Queries
+    </div>
+
+    <nav>
+        <div class="nav-container">
+            <div class="logo">SQL Injection Demo</div>
+            <div class="nav-links">
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('insecure_login') }}">Insecure Login</a>
+                <a href="{{ url_for('secure_login') }}" class="active">Secure Login</a>
+            </div>
+        </div>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message {{ category }}">
+                    {{ message }}
+                    <span class="close-btn">&times;</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="container">
+        <div class="login-card secure">
+            <div class="card-header">
+                <h1>Secure Login</h1>
+                <p class="subtitle">Protected against SQL Injection</p>
+            </div>
+
+            <div class="vulnerability-badge safe">
+                <span class="badge-icon">&#128737;</span>
+                <span class="badge-text">SECURE - Parameterized Queries Used</span>
+            </div>
+
+            <form method="POST" action="{{ url_for('secure_login') }}" class="login-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username"
+                           placeholder="Enter your username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password"
+                           placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Login (Secure)</button>
+            </form>
+
+            <div class="secure-note">
+                <p><strong>Note:</strong> SQL injection payloads like <code>' OR '1'='1</code>
+                will NOT work here. They will be treated as literal text, not executable SQL.</p>
+            </div>
+
+            <div class="insecure-link">
+                <a href="{{ url_for('insecure_login') }}">Try Insecure Login &#8594;</a>
+            </div>
+        </div>
+
+        <div class="code-explanation secure">
+            <h2>Why is this login secure?</h2>
+            <p>The SQL query uses <strong>parameterized queries</strong> (also called prepared statements):</p>
+            <div class="code-block">
+                <pre><code>cursor.execute(
+    "SELECT * FROM users WHERE username=? AND password=?",
+    (username, password)
+)</code></pre>
+            </div>
+
+            <h3>How does this prevent SQL Injection?</h3>
+            <div class="prevention-points">
+                <div class="point">
+                    <h4>1. Separation of Code and Data</h4>
+                    <p>The SQL structure is defined first with <code>?</code> placeholders.
+                       User input is sent separately as data, so it can never be interpreted as SQL code.</p>
+                </div>
+                <div class="point">
+                    <h4>2. Automatic Escaping</h4>
+                    <p>The database driver automatically escapes special characters like
+                       <code>'</code>, <code>"</code>, <code>--</code>, and <code>/*</code>.
+                       Even if an attacker enters malicious SQL, it's treated as plain text.</p>
+                </div>
+                <div class="point">
+                    <h4>3. Query Compilation</h4>
+                    <p>Parameterized queries are compiled once and executed multiple times.
+                       The query plan is fixed before user input is bound, making injection impossible.</p>
+                </div>
+            </div>
+
+            <h3>Try It Yourself</h3>
+            <p>Go to the <a href="{{ url_for('insecure_login') }}" class="inline-link">Insecure Login</a>
+               page and enter <code>' OR '1'='1</code> as both username and password.
+               It will bypass login. Then come back here and try the same payload -
+               it will fail because the secure system treats it as literal text.</p>
+
+            <div class="comparison-box">
+                <h4>Insecure vs Secure - Query Difference</h4>
+                <div class="comparison-grid">
+                    <div class="comparison-item bad">
+                        <h5>&#10060; Insecure (String Concatenation)</h5>
+                        <code>f"...WHERE username='{user}' AND password='{pw}'"</code>
+                        <p>User input becomes part of SQL code</p>
+                    </div>
+                    <div class="comparison-item good">
+                        <h5>&#10004; Secure (Parameterized Query)</h5>
+                        <code>"...WHERE username=? AND password=?"</code>
+                        <p>User input stays as data only</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Developed by Mohd Yasin Kazi | TYBSc CS | SIWS College</p>
+        <p class="disclaimer">For Educational Purpose Only</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
