@@ -5,38 +5,45 @@ from flask import (
 import sqlite3
 import os
 from functools import wraps
-from database import get_db
+from database import get_db, init_db
 
 app = Flask(__name__)
-app.secret_key = 'sql-injection-demo-secret-key-2024'
+app.secret_key = "sql-injection-demo-secret-key-2024"
+
+# Auto-init DB on first request (needed for Vercel serverless)
+init_db()
+
 
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            flash('Please login first', 'warning')
-            return redirect(url_for('index'))
+        if "user_id" not in session:
+            flash("Please login first", "warning")
+            return redirect(url_for("index"))
         return f(*args, **kwargs)
+
     return decorated_function
 
-@app.route('/')
+
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
+
 
 # ============================================================
 # INSECURE LOGIN
 # Uses string concatenation — VULNERABLE to SQL Injection
 # ============================================================
-@app.route('/insecure', methods=['GET', 'POST'])
+@app.route("/insecure", methods=["GET", "POST"])
 def insecure_login():
     query_tried = None
-    if request.method == 'POST':
-        username = request.form['username'].strip()
-        password = request.form['password'].strip()
+    if request.method == "POST":
+        username = request.form["username"].strip()
+        password = request.form["password"].strip()
 
         if not username or not password:
-            flash('Please fill all fields', 'error')
-            return render_template('login.html')
+            flash("Please fill all fields", "error")
+            return render_template("login.html")
 
         conn = get_db()
         cursor = conn.cursor()
@@ -48,35 +55,36 @@ def insecure_login():
             user = cursor.fetchone()
 
             if user:
-                session['user_id'] = user['id']
-                session['username'] = user['username']
-                session['login_type'] = 'insecure'
-                flash('Insecure login successful! (This is UNSAFE)', 'warning')
-                return redirect(url_for('dashboard'))
+                session["user_id"] = user["id"]
+                session["username"] = user["username"]
+                session["login_type"] = "insecure"
+                flash("Insecure login successful! (This is UNSAFE)", "warning")
+                return redirect(url_for("dashboard"))
             else:
-                flash('Invalid credentials', 'error')
+                flash("Invalid credentials", "error")
 
         except Exception as e:
-            flash(f'SQL Error: {str(e)}', 'error')
+            flash(f"SQL Error: {str(e)}", "error")
 
         finally:
             conn.close()
 
-    return render_template('login.html', query_tried=query_tried)
+    return render_template("login.html", query_tried=query_tried)
+
 
 # ============================================================
 # SECURE LOGIN
 # Uses parameterized query — SAFE from SQL Injection
 # ============================================================
-@app.route('/secure', methods=['GET', 'POST'])
+@app.route("/secure", methods=["GET", "POST"])
 def secure_login():
-    if request.method == 'POST':
-        username = request.form['username'].strip()
-        password = request.form['password'].strip()
+    if request.method == "POST":
+        username = request.form["username"].strip()
+        password = request.form["password"].strip()
 
         if not username or not password:
-            flash('Please fill all fields', 'error')
-            return render_template('secure_login.html')
+            flash("Please fill all fields", "error")
+            return render_template("secure_login.html")
 
         conn = get_db()
         cursor = conn.cursor()
@@ -84,45 +92,46 @@ def secure_login():
         try:
             cursor.execute(
                 "SELECT * FROM users WHERE username=? AND password=?",
-                (username, password)
+                (username, password),
             )
             user = cursor.fetchone()
 
             if user:
-                session['user_id'] = user['id']
-                session['username'] = user['username']
-                session['login_type'] = 'secure'
-                flash('Secure login successful! (This is SAFE)', 'success')
-                return redirect(url_for('dashboard'))
+                session["user_id"] = user["id"]
+                session["username"] = user["username"]
+                session["login_type"] = "secure"
+                flash("Secure login successful! (This is SAFE)", "success")
+                return redirect(url_for("dashboard"))
             else:
-                flash('Invalid credentials', 'error')
+                flash("Invalid credentials", "error")
 
         except Exception as e:
-            flash(f'Error: {str(e)}', 'error')
+            flash(f"Error: {str(e)}", "error")
 
         finally:
             conn.close()
 
-    return render_template('secure_login.html')
+    return render_template("secure_login.html")
 
-@app.route('/dashboard')
+
+@app.route("/dashboard")
 @login_required
 def dashboard():
     return render_template(
-        'dashboard.html',
-        username=session.get('username'),
-        login_type=session.get('login_type')
+        "dashboard.html",
+        username=session.get("username"),
+        login_type=session.get("login_type"),
     )
 
-@app.route('/logout')
+
+@app.route("/logout")
 def logout():
     session.clear()
-    flash('Logged out successfully', 'info')
-    return redirect(url_for('index'))
+    flash("Logged out successfully", "info")
+    return redirect(url_for("index"))
 
-if __name__ == '__main__':
-    if not os.path.exists('database.db'):
-        print("Database not found. Initializing...")
-        from database import init_db
+
+if __name__ == "__main__":
+    if not os.path.exists("database.db"):
         init_db()
-    app.run(debug=True, host='127.0.0.1', port=5000)
+    app.run(debug=True, host="127.0.0.1", port=5000)
